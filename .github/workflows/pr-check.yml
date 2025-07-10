@@ -1,0 +1,24 @@
+name: PR Checks
+
+on:
+    pull_request:
+
+jobs:
+    lint-and-test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Установка Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+
+            - name: Установка зависимостей
+              run: npm ci
+
+            - name: Запуск линтера
+              run: npm run lint
+
+            - name: Запуск тестов
+              run: npm run test
