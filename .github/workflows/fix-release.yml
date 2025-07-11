@@ -44,6 +44,3 @@ jobs:
               run: |
                   git tag v${VERSION}_fix${FIX_ID}
                   git push origin v${VERSION}_fix${FIX_ID}
-
-            - name: Комментарий в Issue (если хочешь — подключи action для этого)
-              run: echo "Фикс релиза ${VERSION}_fix${FIX_ID} сделан"
