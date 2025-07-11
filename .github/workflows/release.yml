@@ -74,6 +74,8 @@ jobs:
                   content-filepath: ./release.md
 
             - name: Обновление CHANGELOG.md
+              with:
+                  fetch-depth: 0
               run: |
                   git checkout releases/${VERSION}
                   git pull origin releases/${VERSION}
