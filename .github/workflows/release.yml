@@ -55,7 +55,15 @@ jobs:
 
             - name: Получение списка коммитов
               run: |
-                  git log --pretty=format:'- %h %s' $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD^)..HEAD > commits.txt
+                  # Получим два последних тега (по дате создания)
+                  PREV_TAG=$(git tag --sort=-creatordate | sed -n '2p')
+
+                  # Если нет предыдущего тега — лог всей истории
+                  if [ -z "$PREV_TAG" ]; then
+                    git log --pretty=format:'- %h %s' > commits.txt
+                  else
+                    git log --pretty=format:'- %h %s' $PREV_TAG..HEAD > commits.txt
+                  fi
 
             - name: Сборка текста для Issue (release.md)
               run: |
