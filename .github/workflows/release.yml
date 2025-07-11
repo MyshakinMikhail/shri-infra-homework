@@ -82,7 +82,7 @@ jobs:
                   git config user.email "github-actions@github.com"
 
                   DATE=$(date '+%Y-%m-%d')
-                  VERSION="v${{ env.VERSION }}"
+                  NEW_VERSION="v${{ env.VERSION }}"
 
                   PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 
@@ -92,7 +92,7 @@ jobs:
                     COMMITS=$(git log --pretty=format:'- %h %s' $PREV_TAG..HEAD)
                   fi
 
-                  echo "## $VERSION - $DATE" > temp.md
+                  echo "## $NEW_VERSION - $DATE" > temp.md
                   echo "" >> temp.md
                   echo "$COMMITS" >> temp.md
                   echo "" >> temp.md
@@ -104,5 +104,5 @@ jobs:
                   mv temp.md CHANGELOG.md
 
                   git add CHANGELOG.md
-                  git commit -m "docs: update changelog for $VERSION"
+                  git commit -m "docs: update changelog for $NEW_VERSION"
                   git push origin releases/${VERSION}
