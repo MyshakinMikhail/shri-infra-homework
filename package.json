@@ -5,8 +5,8 @@
         "start": "nodemon ./src/server/index.ts",
         "build": "webpack --mode=production --node-env=production",
         "watch": "webpack --watch",
-        "build:docker": "docker build -t app .",
-        "start:docker": "docker run -p 3000:3000 app",
+        "build:docker": "docker build -t shri-infra .",
+        "start:docker": "docker run -p 3000:3000 shri-infra",
         "test": "jest",
         "lint": "eslint ./src"
     },
