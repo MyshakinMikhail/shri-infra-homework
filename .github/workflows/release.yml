@@ -75,27 +75,34 @@ jobs:
 
             - name: Обновление CHANGELOG.md
               run: |
-                  # Создаём новую ветку
-                  git checkout -b changelog-update
-                  git pull origin changelog-update
-                  # Генерируем содержимое release.md или temp.md
-                  echo "## v${{ env.VERSION }} - $(date '+%Y-%m-%d')" > temp.md
+                  git checkout releases/${VERSION}
+                  git pull origin releases/${VERSION}
 
                   git config user.name "github-actions"
                   git config user.email "github-actions@github.com"
 
-                  # Добавляем файлы в индекс Git
+                  DATE=$(date '+%Y-%m-%d')
+                  VERSION="v${{ env.VERSION }}"
+
+                  PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+                  if [ -z "$PREV_TAG" ]; then
+                    COMMITS=$(git log --pretty=format:'- %h %s')
+                  else
+                    COMMITS=$(git log --pretty=format:'- %h %s' $PREV_TAG..HEAD)
+                  fi
+
+                  echo "## $VERSION - $DATE" > temp.md
+                  echo "" >> temp.md
+                  echo "$COMMITS" >> temp.md
+                  echo "" >> temp.md
+
+                  if [ -f CHANGELOG.md ]; then
+                    cat CHANGELOG.md >> temp.md
+                  fi
+
+                  mv temp.md CHANGELOG.md
+
                   git add CHANGELOG.md
-                  git add release.md
-                  git add temp.md
-
-                  # Делаем коммит
-                  git commit -m "docs: update changelog for v${{ env.VERSION }}"
-
-                  # Пушим изменения в новую ветку
-                  git push origin changelog-update
-
-                  # Создаём pull request через GitHub CLI
-                  gh pr create --title "Update changelog for v${{ env.VERSION }}" --body "Automated changelog update" --base main --head changelog-update
-              env:
-                  GH_TOKEN: ${{ github.token }}
+                  git commit -m "docs: update changelog for $VERSION"
+                  git push origin releases/${VERSION}
