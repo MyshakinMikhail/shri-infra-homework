@@ -54,11 +54,8 @@ jobs:
                   git push origin v${VERSION}
 
             - name: Получение списка коммитов
-              id: changelog
               run: |
-                  echo "COMMITS<<EOF" >> $GITHUB_ENV
-                  git log --pretty=format:'- %h %s' $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD^)..HEAD >> $GITHUB_ENV
-                  echo "EOF" >> $GITHUB_ENV
+                  git log --pretty=format:'- %h %s' $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD^)..HEAD > commits.txt
 
             - name: Сборка текста для Issue (release.md)
               run: |
@@ -70,8 +67,7 @@ jobs:
                   echo "**Docker-образ:** cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}" >> release.md
                   echo "" >> release.md
                   echo "**Коммиты:**" >> release.md
-                  echo "${{ env.COMMITS }}"
-                  git log --pretty=format:'- %h %s' $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD^)..HEAD >> release.md
+                  cat commits.txt >> release.md
 
             - name: Создание issue
               uses: peter-evans/create-issue-from-file@v4
