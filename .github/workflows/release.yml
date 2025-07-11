@@ -12,6 +12,11 @@ jobs:
         steps:
             - name: Checkout репозитория
               uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+
+            - name: Fetch tags
+              run: git fetch --tags
 
             - name: Установка Node.js
               uses: actions/setup-node@v4
@@ -74,8 +79,7 @@ jobs:
                   content-filepath: ./release.md
 
             - name: Обновление CHANGELOG.md
-              with:
-                  fetch-depth: 0
+
               run: |
                   git checkout releases/${VERSION}
                   git pull origin releases/${VERSION}
