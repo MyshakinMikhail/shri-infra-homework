@@ -1,0 +1,49 @@
+name: Fix Release
+
+on:
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Release version (e.g. 12)"
+                required: true
+
+jobs:
+    fix:
+        runs-on: ubuntu-latest
+        env:
+            VERSION: ${{ github.event.inputs.version }}
+            FIX_ID: ${{ github.run_number }}
+
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Установка Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+
+            - name: Установка зависимостей
+              run: npm ci
+
+            - name: Проверка типов и тесты
+              run: |
+                  npm run lint
+                  npm run test
+
+            - name: Docker login
+              run: echo "${{ secrets.YCR_PASSWORD }}" | docker login --username "${{ secrets.YCR_USERNAME }}" --password-stdin cr.yandex
+
+            - name: Сборка и пуш фикса
+              run: |
+                  docker build -t cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_fix${FIX_ID} .
+                  docker tag cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_fix${FIX_ID} cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_latest
+                  docker push cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_fix${FIX_ID}
+                  docker push cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_latest
+
+            - name: Тег фикса
+              run: |
+                  git tag v${VERSION}_fix${FIX_ID}
+                  git push origin v${VERSION}_fix${FIX_ID}
+
+            - name: Комментарий в Issue (если хочешь — подключи action для этого)
+              run: echo "Фикс релиза ${VERSION}_fix${FIX_ID} сделан"

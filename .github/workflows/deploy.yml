@@ -1,0 +1,33 @@
+name: Deploy to Production
+
+on:
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Release version (e.g. 12)"
+                required: true
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        env:
+            VERSION: ${{ github.event.inputs.version }}
+
+        steps:
+            - name: Добавление SSH ключа
+              uses: webfactory/ssh-agent@v0.9.0
+              with:
+                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+            - name: Деплой на сервер
+              run: |
+                  ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.PROD_SERVER_IP }} <<EOF
+                    docker login -u ${{ secrets.YCR_USERNAME }} -p ${{ secrets.YCR_PASSWORD }} cr.yandex
+                    docker pull cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_latest
+                    docker stop shri-infra || true
+                    docker rm shri-infra || true
+                    docker run -d -p 3000:3000 --name shri-infra cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_latest
+                  EOF
+
+            - name: Отметка в Issue
+              run: echo "Релиз v${VERSION} выкачан в прод"

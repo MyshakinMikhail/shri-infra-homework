@@ -1,0 +1,87 @@
+name: Create Release
+
+on:
+    workflow_dispatch:
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        env:
+            VERSION: ${{ github.run_number }}
+
+        steps:
+            - name: Checkout репозитория
+              uses: actions/checkout@v3
+
+            - name: Установка Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+
+            - name: Установка зависимостей
+              run: npm ci
+
+            - name: Проверка кода и тесты
+              run: |
+                  npm run lint
+                  npm run test
+
+            - name: Создание релизной ветки
+              run: |
+                  git fetch
+                  git checkout main
+                  git checkout -b releases/${VERSION}
+                  git push origin releases/${VERSION}
+
+            - name: Docker login
+              run: echo "${{ secrets.YCR_PASSWORD }}" | docker login --username "oauth" --password-stdin cr.yandex
+
+            - name: Сборка и пуш Docker-образа
+              run: |
+                  docker build -t cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION} .
+                  docker tag cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION} cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}_latest
+                  docker push cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}
+                  docker push cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}_latest
+
+            - name: Создание тега релиза
+              run: |
+                  git tag v${VERSION}
+                  git push origin v${VERSION}
+
+            - name: Получение списка коммитов
+              id: changelog
+              run: |
+                  echo "COMMITS<<EOF" >> $GITHUB_ENV
+                  git log --pretty=format:'- %h %s' $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD^)..HEAD >> $GITHUB_ENV
+                  echo "EOF" >> $GITHUB_ENV
+
+            - name: Сборка текста для Issue (release.md)
+              run: |
+                  echo "## Релиз v${VERSION}" > release.md
+                  echo "" >> release.md
+                  echo "**Дата:** $(date '+%Y-%m-%d')" >> release.md
+                  echo "**Автор:** ${{ github.actor }}" >> release.md
+                  echo "**Версия:** v${VERSION}" >> release.md
+                  echo "**Docker-образ:** cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}" >> release.md
+                  echo "" >> release.md
+                  echo "**Коммиты:**" >> release.md
+                  git log --pretty=format:'- %h %s' $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD^)..HEAD >> release.md
+
+            - name: Создание issue
+              uses: peter-evans/create-issue-from-file@v4
+              with:
+                  title: "Release v${{ env.VERSION }}"
+                  content-filepath: ./release.md
+
+            - name: Обновление CHANGELOG.md
+              run: |
+                  echo "## v${VERSION} — $(date '+%Y-%m-%d')" > temp.md
+                  git log --pretty=format:'- %h %s' $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD^)..HEAD >> temp.md
+                  echo "" >> temp.md
+                  cat CHANGELOG.md >> temp.md || true
+                  mv temp.md CHANGELOG.md
+                  git config user.name "github-actions"
+                  git config user.email "github-actions@github.com"
+                  git add CHANGELOG.md
+                  git commit -m "docs: update changelog for v${VERSION}" || echo "Нечего коммитить"
+                  git push origin HEAD:main
