@@ -75,13 +75,18 @@ jobs:
 
             - name: Обновление CHANGELOG.md
               run: |
-                  echo "## v${VERSION} — $(date '+%Y-%m-%d')" > temp.md
-                  git log --pretty=format:'- %h %s' $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD^)..HEAD >> temp.md
-                  echo "" >> temp.md
-                  cat CHANGELOG.md >> temp.md || true
-                  mv temp.md CHANGELOG.md
+                  # Создаём новую ветку
+                  git checkout -b changelog-update
+
+                  # Делаем изменения в CHANGELOG.md
+                  echo "## v${{ env.VERSION }} - $(date '+%Y-%m-%d')" > temp.md
                   git config user.name "github-actions"
                   git config user.email "github-actions@github.com"
                   git add CHANGELOG.md
-                  git commit -m "docs: update changelog for v${VERSION}" || echo "Нечего коммитить"
-                  git push origin HEAD:main
+                  git commit -m "docs: update changelog for v${{ env.VERSION }}"
+
+                  # Пушим изменения в новую ветку
+                  git push origin changelog-update
+
+                  # Создаём pull request через API
+                  gh pr create --title "Update changelog for v${{ env.VERSION }}" --body "Automated changelog update" --base main --head changelog-update
