@@ -77,7 +77,7 @@ jobs:
               run: |
                   # Создаём новую ветку
                   git checkout -b changelog-update
-
+                  git pull origin changelog-update
                   # Генерируем содержимое release.md или temp.md
                   echo "## v${{ env.VERSION }} - $(date '+%Y-%m-%d')" > temp.md
 
