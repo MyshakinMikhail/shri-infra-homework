@@ -35,10 +35,10 @@ jobs:
 
             - name: Сборка и пуш фикса
               run: |
-                  docker build -t cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_fix${FIX_ID} .
-                  docker tag cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_fix${FIX_ID} cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_latest
-                  docker push cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_fix${FIX_ID}
-                  docker push cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_latest
+                  docker build -t cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}_fix${FIX_ID} .
+                  docker tag cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}_fix${FIX_ID} cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}_latest
+                  docker push cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}_fix${FIX_ID}
+                  docker push cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}_latest
 
             - name: Тег фикса
               run: |
