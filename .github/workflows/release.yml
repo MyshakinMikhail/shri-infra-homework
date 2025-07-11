@@ -95,22 +95,10 @@ jobs:
                   DATE=$(date '+%Y-%m-%d')
                   NEW_VERSION="v${{ env.VERSION }}"
 
-                  PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-
-                  echo "PREV_TAG: $PREV_TAG"
-
-                  if [ -z "$PREV_TAG" ]; then
-                    COMMITS=$(git log --pretty=format:'- %h %s')
-                  else
-                    COMMITS=$(git log --pretty=format:'- %h %s' $PREV_TAG..HEAD)
-                  fi
-
                   echo "## $NEW_VERSION - $DATE" > temp.md
                   echo "" >> temp.md
                   echo "$COMMITS" >> temp.md
-                  echo "" >> temp.md
-                  echo "Коммиты:"
-                  echo "${{ env.COMMITS }}"
+                  cat commits.txt >> temp.md
 
                   if [ -f CHANGELOG.md ]; then
                     cat CHANGELOG.md >> temp.md
