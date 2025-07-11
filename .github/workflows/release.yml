@@ -70,6 +70,7 @@ jobs:
                   echo "**Docker-образ:** cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}" >> release.md
                   echo "" >> release.md
                   echo "**Коммиты:**" >> release.md
+                  echo "${{ env.COMMITS }}"
                   git log --pretty=format:'- %h %s' $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD^)..HEAD >> release.md
 
             - name: Создание issue
