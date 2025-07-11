@@ -29,13 +29,23 @@ jobs:
                     docker run -d -p 3000:3000 --name app cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}_latest
                   EOF
 
-            - name: Добавление комментария в Issue
-              uses: peter-evans/create-or-update-comment@v4
-              with:
-                  issue-search: "Release v${{ env.VERSION }}"
-                  comment-author: github-actions[bot]
-                  body: |
-                      🚀 Релиз **v${{ env.VERSION }}** был успешно выкачан в прод.
+            - name: Формирование issue о выкладке
+              run: |
+                  DATE=$(date '+%Y-%m-%d')
+                  VERSION="v${{ env.VERSION }}"
+                  AUTHOR="@${{ github.actor }}"
+                  DOCKER_TAG="cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}_latest"
 
-                      📅 Дата: $(date '+%Y-%m-%d')  
-                      👤 Автор: @${{ github.actor }}
+                  {
+                    echo "## 🚀 Прод выкладка релиза ${VERSION}"
+                    echo ""
+                    echo "**📅 Дата:** $DATE"
+                    echo "**👤 Автор:** $AUTHOR"
+                    echo "**🐳 Docker-образ:** \`$DOCKER_TAG\`"
+                  } > deploy.md
+
+            - name: Создание Issue о выкладке
+              uses: peter-evans/create-issue-from-file@v4
+              with:
+                  title: "Deploy: Release v${{ env.VERSION }} выкачан в прод"
+                  content-filepath: ./deploy.md
