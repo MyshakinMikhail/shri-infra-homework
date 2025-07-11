@@ -92,6 +92,8 @@ jobs:
 
                   PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 
+                  echo "PREV_TAG: $PREV_TAG"
+
                   if [ -z "$PREV_TAG" ]; then
                     COMMITS=$(git log --pretty=format:'- %h %s')
                   else
@@ -102,6 +104,8 @@ jobs:
                   echo "" >> temp.md
                   echo "$COMMITS" >> temp.md
                   echo "" >> temp.md
+                  echo "Коммиты:"
+                  echo "${{ env.COMMITS }}"
 
                   if [ -f CHANGELOG.md ]; then
                     cat CHANGELOG.md >> temp.md
@@ -109,6 +113,6 @@ jobs:
 
                   mv temp.md CHANGELOG.md
 
-                  git add .
+                  git add CHANGELOG.md
                   git commit -m "docs: update changelog for $NEW_VERSION"
                   git push origin releases/${VERSION}
