@@ -29,5 +29,13 @@ jobs:
                     docker run -d -p 3000:3000 --name app cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}_latest
                   EOF
 
-            - name: Отметка в Issue
-              run: echo "Релиз v${VERSION} выкачан в прод"
+            - name: Добавление комментария в Issue
+              uses: peter-evans/create-or-update-comment@v4
+              with:
+                  issue-search: "Release v${{ env.VERSION }}"
+                  comment-author: github-actions[bot]
+                  body: |
+                      🚀 Релиз **v${{ env.VERSION }}** был успешно выкачан в прод.
+
+                      📅 Дата: $(date '+%Y-%m-%d')  
+                      👤 Автор: @${{ github.actor }}
