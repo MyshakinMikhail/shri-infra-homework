@@ -16,7 +16,7 @@ jobs:
             - name: Установка Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "20"
+                  node-version: "22"
 
             - name: Установка зависимостей
               run: npm ci
@@ -29,6 +29,7 @@ jobs:
             - name: Создание релизной ветки
               run: |
                   git fetch
+                  git checkout main
                   git checkout -b releases/${VERSION}
                   git push origin releases/${VERSION}
 
@@ -37,10 +38,10 @@ jobs:
 
             - name: Сборка и пуш Docker-образа
               run: |
-                  docker build -t cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION} .
-                  docker tag cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION} cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_latest
-                  docker push cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}
-                  docker push cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}_latest
+                  docker build -t cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION} .
+                  docker tag cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION} cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}_latest
+                  docker push cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}
+                  docker push cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}_latest
 
             - name: Создание тега релиза
               run: |
@@ -61,7 +62,7 @@ jobs:
                   echo "**Дата:** $(date '+%Y-%m-%d')" >> release.md
                   echo "**Автор:** ${{ github.actor }}" >> release.md
                   echo "**Версия:** v${VERSION}" >> release.md
-                  echo "**Docker-образ:** cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/shri-infra:${VERSION}" >> release.md
+                  echo "**Docker-образ:** cr.yandex/${{ secrets.YCR_REGISTRY_ID }}/app:${VERSION}" >> release.md
                   echo "" >> release.md
                   echo "**Коммиты:**" >> release.md
                   git log --pretty=format:'- %h %s' $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD^)..HEAD >> release.md
